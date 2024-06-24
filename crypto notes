@@ -1,0 +1,11 @@
+
+get daily high/low
+get last quote info
+
+make a algo/best guess scenario with that.
+
+check if you have positions
+if not position check if there is an order out
+check if the order is filled
+
+if the order is not filled and there is no position, set new limit order for algo/best guess
