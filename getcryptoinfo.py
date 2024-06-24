@@ -1,4 +1,5 @@
 from alpaca.data.historical import CryptoHistoricalDataClient
+from alpaca.data.requests import CryptoLatestQuoteRequest
 from alpaca.data.requests import CryptoBarsRequest
 from alpaca.data.timeframe import TimeFrame
 from datetime import datetime
@@ -9,15 +10,48 @@ currYear = datetime.today().strftime('%Y')
 currMonth = datetime.today().strftime('%m')
 currDay = datetime.today().strftime('%d')
  
-import requests
+# get latest quotes by symbol
+req = CryptoLatestQuoteRequest(
+    symbol_or_symbols = ["BAT/USD"],
+)
+res = client.get_crypto_latest_quote(req)
+res_string = str(res)
+res_replace = res_string.replace(" ","|")
+res_split = res_replace.split("|")
+res_replace = str(res_split).replace("''","")
+res_replace = str(res_replace).replace(",","")
+res_replace = str(res_replace).replace(r"\n'","")
+res_replace = str(res_replace).replace(r"    ","|")
+res_replace = str(res_replace).split("|")
+# ask price cleanup
+AP_replace = str(res_replace[1]).replace(r"ask_price","")
+AP_replace = str(AP_replace).replace(r"'':","")
+AP_replace = str(AP_replace).replace(" '","")
+AP_replace = str(AP_replace).replace(r'""',"")
+askPrice = float(AP_replace)
+# bid price cleanup
+BP_replace = str(res_replace[4]).replace(r"bid_price","")
+BP_replace = str(BP_replace).replace(r"'':","")
+BP_replace = str(BP_replace).replace(" '","")
+BP_replace = str(BP_replace).replace(r'""',"")
+bidPrice = float(BP_replace)
+#prints
+print(res_replace)
+print(askPrice) #Ask Price
+print(bidPrice) #Bid Price
+print("Average: " + str((askPrice + bidPrice) / 2))
 
-url = "https://data.alpaca.markets/v1beta3/crypto/us/latest/trades?symbols=DOGE%2FUSD"
 
-headers = {"accept": "application/json"}
 
-response = requests.get(url, headers=headers)
 
-print(response.text)
+
+
+
+
+
+
+
+#Bars
 
 request_params = CryptoBarsRequest(
                         symbol_or_symbols=[
@@ -48,7 +82,7 @@ start=datetime(int(currYear),int(currMonth),int(currDay))
 
 bars = client.get_crypto_bars(request_params)
 
-print(bars.df)
+#print(bars.df)
 
 
 
