@@ -194,6 +194,9 @@ def orderBuySell(posi, highPrice, lowPrice, rangeSize, symb,x): #4
         res = trade_client.submit_order(req)
         print(res)
         print(posi + " Purchased")
+    highPrice = 0
+    lowPrice = 0
+    rangeSize = 0
 
 while True:
     x+=1
