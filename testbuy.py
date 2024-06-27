@@ -52,14 +52,16 @@ def checkForPositions(symb, trade_client, x): #1
         #print(symbs)
         position = trade_client.get_open_position(symbol_or_asset_id=symbs)
         #print(position)
-        print("-=Position Open=-")
-        status = "SELL"
-        getHighLow(symb, status, x, position)
     except:
         print("-=No Position for: " + symb[x])
         status = "BUY"
+        position = "0"
         getHighLow(symb, status, x, position)
-
+    else:
+        print("-=Position Open=-")
+        status = "SELL"
+        getHighLow(symb, status, x, position)
+        
 def checkForOrders(symb, x, trade_client):
     print("Symbol: " + symb[x])
     print("-=Check Orders=-")
@@ -132,13 +134,14 @@ def orderBuySell(status, highPrice, lowPrice, rangeSize, symb, x, position): #4
                     qty = qty,
                     side = OrderSide.SELL,
                     time_in_force = TimeInForce.GTC,
-                    limit_price = str(float(lowPricePrice) - float(rangeSize)),
-                    stop_price = str(float(lowPricePrice) + float(rangeSize))
+                    limit_price = str(float(lowPrice) - float(rangeSize)),
+                    stop_price = str(float(lowPrice) + float(rangeSize))
                     )
-        #res = trade_client.submit_order(req)
+        res = trade_client.submit_order(req)
         #print(res)
         print(status + " Purchased Sell Order")
         status = "Nothing"
+        symb = "Nothing"
     if status == "BUY":
         req = StopLimitOrderRequest(
                     symbol = symb[x],
@@ -148,10 +151,11 @@ def orderBuySell(status, highPrice, lowPrice, rangeSize, symb, x, position): #4
                     limit_price = str(float(highPrice) + float(rangeSize)),
                     stop_price = str(float(highPrice) - float(rangeSize))
                     )
-        #res = trade_client.submit_order(req)
+        res = trade_client.submit_order(req)
         #print(res)
         print(status + " Purchased Buy Order")
         status = "Nothing"
+        symb = "Nothing"
     #highPrice = 0
     #lowPrice = 0
     #rangeSize = 0
