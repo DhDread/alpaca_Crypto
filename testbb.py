@@ -44,26 +44,135 @@ symb = ["DOGE/USD","GRT/USD","BAT/USD"]
 trade_client = TradingClient(api_key=api_key, secret_key=secret_key, paper=paper, url_override=trade_api_url)
 ####
 posi = "Nothing"
-x = 0
+x = -1
 # Functions
 def checkForPositions(symb, trade_client, posi,x): #1
     try:
-        #print(symb[0])
+        print("Symbol: " + symb[x])
         symbs = symb[x].replace("/","")
         #print(symbs)
         position = trade_client.get_open_position(symbol_or_asset_id=symbs)
         #print(position)
-        print("-=Position Pending=-")
+        print("-=Position Open=-")
         print("-=Check Order To Sell=-")
         #print(posi)
         posi = "SELL"
-        checkForOrders(symb, posi) #test#
+        checkForOrders(symb, posi, x) #test#
     except:
         print("-=No Position for: " + symb[x] +" Currently=-")
         print("-=Check for Orders=-")
         #noPos = False
         posi = "BUY"
-        checkForOrders(symb, posi,x)
+        #checkForOrders(symb, posi, x)
+
+def checkForOrders(symb, posi, x): #2
+    #print(symb[x])
+    req = GetOrdersRequest(
+        status = QueryOrderStatus.OPEN,
+        symbols = [symb[x]]
+        )
+    orders = trade_client.get_orders(req)
+    orders = str(orders).replace("[]","")
+    #print(orders)
+    #print(posi)
+    if orders == "":
+        print("-=No Orders Found=-")
+        if posi == "SELL":
+            print("-=Set Up Sell Order=-")
+            getHighLow(symb,posi,x)
+        elif posi == "BUY":
+            print("-=Set Up Buy Order=-")
+            getHighLow(symb,posi,x)
+    else:
+        print("-=Order Waiting to be Filled=-")
+         
+def getHighLow(symb, posi, x): #3
+    request_params = CryptoBarsRequest(
+                        symbol_or_symbols=[symb[x]],
+    timeframe=TimeFrame.Day,
+    start=datetime(int(currYear),int(currMonth),int(currDay))
+    )
+    bars = client.get_crypto_bars(request_params)
+    bars_string = str(bars)
+    #print(bars_string)
+    bars_replace = bars_string.replace(" ","|")
+    bars_split = bars_replace.split("|")
+    bars_replace = str(bars_split).replace("''","")
+    bars_replace = str(bars_replace).replace(",","")
+    bars_replace = str(bars_replace).replace(r"\n'","")
+    bars_replace = str(bars_replace).replace(r"    ","|")
+    bars_replace = str(bars_replace).split("|")
+    High_replace = str(bars_replace[1]).replace(r"high","")
+    High_replace = str(High_replace).replace(r"'':","")
+    High_replace = str(High_replace).replace(" '","")
+    High_replace = str(High_replace).replace(r'""',"")
+    highPrice = float(High_replace)
+    Low_replace = str(bars_replace[2]).replace(r"low","")
+    Low_replace = str(Low_replace).replace(r"'':","")
+    Low_replace = str(Low_replace).replace(" '","")
+    lowPrice = str(Low_replace).replace(r'""',"")
+    #print(highPrice) #High Price
+    #print(lowPrice) #Low Price
+    #rangeSize = float(highPrice) - float(lowPrice)
+    print("range: " + str(rangeSize))
+    if posi == "BUY":
+        print("Buy: " + "StopLoss: " + str(float(highPrice) - float(rangeSize)))
+        print("Buy: " + "TakeProf: " + str(float(highPrice) + float(rangeSize)))
+    elif posi == "SELL":
+        print("Sell: " + "StopLoss: " + str(float(lowPrice) + float(rangeSize)))
+        print("Sell: " + "TakeProf: " + str(float(lowPrice) - float(rangeSize)))
+    #orderBuySell(posi, highPrice, lowPrice, rangeSize, symb, x)
+
+def orderBuySell(posi, highPrice, lowPrice, rangeSize, symb,x): #4
+    # stop limit order
+    print(symb[x])
+    if posi == "SELL":
+        req = StopLimitOrderRequest(
+                    symbol = symb[x],
+                    qty = 100,
+                    side = OrderSide.SELL,
+                    time_in_force = TimeInForce.GTC,
+                    limit_price = str(float(lowPricePrice) - float(rangeSize)),
+                    stop_price = str(float(lowPricePrice) + float(rangeSize))
+                    )
+        res = trade_client.submit_order(req)
+        print(res)
+        print(posi + " Purchased Sell Order")
+    elif posi == "BUY":
+        req = StopLimitOrderRequest(
+                    symbol = symb[x],
+                    qty = 100,
+                    side = OrderSide.BUY,
+                    time_in_force = TimeInForce.GTC,
+                    limit_price = str(float(highPrice) + float(rangeSize)),
+                    stop_price = str(float(highPrice) - float(rangeSize))
+                    )
+        res = trade_client.submit_order(req)
+        print(res)
+        print(posi + " Purchased Buy Order")
+    highPrice = 0
+    lowPrice = 0
+    rangeSize = 0
+
+while True:
+    x+=1
+    checkForPositions(symb, trade_client, posi, x) #1
+    #checkForOrders(symb, posi, x)
+    if x == 2:
+        x=-1
+    noPos = True
+    now = datetime.now()
+    print("-=-----=-")
+    print(now)
+    print("-=-----=-")
+    time.sleep(7)
+
+
+
+
+
+
+# ------------- N/A ----------------- 
 
 def getLastTrades(symb,x):
     req = CryptoLatestQuoteRequest(
@@ -96,65 +205,7 @@ def getLastTrades(symb,x):
     print(askPrice) #Ask Price
     print(bidPrice) #Bid Price
     print("Average: " + str(quoteAvg))
-
-def getHighLow(symb,posi,x): #3
-    request_params = CryptoBarsRequest(
-                        symbol_or_symbols=[symb[0]],
-    timeframe=TimeFrame.Day,
-    start=datetime(int(currYear),int(currMonth),int(currDay))
-    )
-    bars = client.get_crypto_bars(request_params)
-    bars_string = str(bars)
-    #print(bars_string)
-    bars_replace = bars_string.replace(" ","|")
-    bars_split = bars_replace.split("|")
-    bars_replace = str(bars_split).replace("''","")
-    bars_replace = str(bars_replace).replace(",","")
-    bars_replace = str(bars_replace).replace(r"\n'","")
-    bars_replace = str(bars_replace).replace(r"    ","|")
-    bars_replace = str(bars_replace).split("|")
-    High_replace = str(bars_replace[1]).replace(r"high","")
-    High_replace = str(High_replace).replace(r"'':","")
-    High_replace = str(High_replace).replace(" '","")
-    High_replace = str(High_replace).replace(r'""',"")
-    highPrice = float(High_replace)
-    Low_replace = str(bars_replace[2]).replace(r"low","")
-    Low_replace = str(Low_replace).replace(r"'':","")
-    Low_replace = str(Low_replace).replace(" '","")
-    lowPrice = str(Low_replace).replace(r'""',"")
-    print(highPrice) #High Price
-    print(lowPrice) #Low Price
-    rangeSize = float(highPrice) - float(lowPrice)
-    print("range: " + str(rangeSize))
-    print("Buy: " + "StopLoss: " + str(float(highPrice) - float(rangeSize)))
-    print("Buy: " + "TakeProf: " + str(float(highPrice) + float(rangeSize))) 
-    print("Sell: " + "StopLoss: " + str(float(lowPrice) + float(rangeSize)))
-    print("Sell: " + "TakeProf: " + str(float(lowPrice) - float(rangeSize)))
-    orderBuySell(posi, highPrice, lowPrice, rangeSize, symb,x)
-
-def checkForOrders(symb, posi,x): #2
-    #print(symb[0])
-    req = GetOrdersRequest(
-        status = QueryOrderStatus.OPEN,
-        symbols = [symb[x]]
-        )
-    orders = trade_client.get_orders(req)
-    orders = str(orders).replace("[]","")
-    #print(orders)
-    print(posi)
-    if posi == "SELL":
-        if orders == "":
-            print("-=Set Up Sell Order=-")
-            getHighLow(symb,posi,x)
-        else:
-            print("-=Order Waiting to be Filled=-")
-    elif posi == "BUY":
-        if orders == "":
-            print("-=Set Up Buy Order=-")
-            getHighLow(symb,posi,x)
-        else:
-            print("-=Order Waiting to be Filled=-")
-            
+    
 def checkIfBuySell(orders):
     print(orders)
     orders_string = str(orders)
@@ -167,59 +218,3 @@ def checkIfBuySell(orders):
     orders_replace = str(orders_replace).replace(r"    ","|")
     orders_replace = str(orders_replace).split("|")
     print(orders_replace[15])
-
-def orderBuySell(posi, highPrice, lowPrice, rangeSize, symb,x): #4
-    # stop limit order
-    if posi == "SELL":
-        req = StopLimitOrderRequest(
-                    symbol = symb[x],
-                    qty = 100,
-                    side = OrderSide.SELL,
-                    time_in_force = TimeInForce.GTC,
-                    limit_price = str(float(lowPricePrice) + float(rangeSize)),
-                    stop_price = str(float(lowPricePrice) + float(rangeSize))
-                    )
-        res = trade_client.submit_order(req)
-        print(res)
-        print(posi + " Purchased")
-    elif posi == "BUY":
-        req = StopLimitOrderRequest(
-                    symbol = symb[x],
-                    qty = 100,
-                    side = OrderSide.BUY,
-                    time_in_force = TimeInForce.GTC,
-                    limit_price = str(float(highPrice) + float(rangeSize)),
-                    stop_price = str(float(highPrice) - float(rangeSize))
-                    )
-        res = trade_client.submit_order(req)
-        print(res)
-        print(posi + " Purchased")
-    highPrice = 0
-    lowPrice = 0
-    rangeSize = 0
-
-while True:
-    x+=1
-    checkForPositions(symb, trade_client, posi,x) #1
-    if x == 2:
-        x=-1
-    noPos = True
-    now = datetime.now()
-    print(now)
-    time.sleep(7)
-
-
-
-
-
-
-
-
-
-#def checkForOrders()
-
-
-
-
-#
-
