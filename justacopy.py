@@ -151,6 +151,8 @@ def getLastTrades(symb, x, status, highPrice, lowPrice, rangeSize, position):
     print("BidP: " + str(bidPrice)) #Bid Price #Set as limit
     print("Average: " + str(quoteAvg))
     print(str(float(askPrice) - float(bidPrice)))
+    print("Latest Stop Price: " + str((float(lowPrice) + float(rangeSize))*.99))
+    print("Latest Limit Price: " +str((float(lowPrice) + float(rangeSize)) * 1.02))
     orderBuySell(status, highPrice, lowPrice, rangeSize, symb, x, position, askPrice, bidPrice, quoteAvg)
 
 def orderBuySell(status, highPrice, lowPrice, rangeSize, symb, x, position, askPrice, bidPrice, quoteAvg): #4
@@ -170,8 +172,8 @@ def orderBuySell(status, highPrice, lowPrice, rangeSize, symb, x, position, askP
                     qty = qty,
                     side = OrderSide.SELL,
                     time_in_force = TimeInForce.GTC,
-                    limit_price = str((float(highPrice) + float(rangeSize))*.98),
-                    stop_price = str((float(askPrice) + float(quoteAvg))*.98)
+                    limit_price = str((float(lowPrice) + float(rangeSize))*.99),
+                    stop_price = str((float(lowPrice) + float(rangeSize))*1.01)
                     )
         res = trade_client.submit_order(req)
         #print(res)
@@ -212,9 +214,9 @@ while True:
     print("-=-----=-")
     timerCount+=1
     time.sleep(15)
-    if timerCount == 120:
+    if timerCount == 60:
         clearAllOrders(trade_client)
-    elif timerCount == 60:
+    elif timerCount == 30:
         print("50%")
         #clearAllOrders(trade_client)
     
