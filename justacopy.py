@@ -169,8 +169,8 @@ def orderBuySell(status, highPrice, lowPrice, rangeSize, symb, x, position, askP
                     qty = qty,
                     side = OrderSide.SELL,
                     time_in_force = TimeInForce.GTC,
-                    limit_price = str(float(highPrice) + float(rangeSize)),
-                    stop_price = str(float(askPrice) + float(quoteAvg))
+                    limit_price = str((float(highPrice) + float(rangeSize))*.98),
+                    stop_price = str((float(askPrice) + float(quoteAvg))*.98)
                     )
         res = trade_client.submit_order(req)
         #print(res)
@@ -182,9 +182,9 @@ def orderBuySell(status, highPrice, lowPrice, rangeSize, symb, x, position, askP
                     symbol = symb[x],
                     qty = 100,
                     side = OrderSide.BUY,
-                    time_in_force = TimeInForce.GTC,
-                    limit_price = bidPrice, # bid price
-                    stop_price = str(float(highPrice) - float(rangeSize)) #stop loss price
+                    time_in_force = TimeInForce.IOC,
+                    limit_price = str(float(askPrice)), # bid price
+                    stop_price = str((float(highPrice) - float(rangeSize))) #stop loss price
                     )
         res = trade_client.submit_order(req)
         #print(res)
