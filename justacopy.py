@@ -45,6 +45,7 @@ trade_client = TradingClient(api_key=api_key, secret_key=secret_key, paper=paper
 ####
 status = "Nothing"
 x = -1
+timerCount = 0
 # Functions
 def checkForPositions(symb, trade_client, x): #1
     try:
@@ -195,8 +196,8 @@ def orderBuySell(status, highPrice, lowPrice, rangeSize, symb, x, position, askP
     #lowPrice = 0
     #rangeSize = 0
 
-def returnw():
-    return 1
+def clearAllOrders(trade_client):
+    trade_client.cancel_orders()
 
 while True:
     x+=1
@@ -209,7 +210,16 @@ while True:
     print("-=-----=-")
     print(now)
     print("-=-----=-")
+    timerCount+=1
     time.sleep(15)
+    if timerCount == 120:
+        clearAllOrders(trade_client)
+    elif timerCount == 60:
+        print("50%")
+        #clearAllOrders(trade_client)
+    
+    
+
 
 
 
