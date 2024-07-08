@@ -172,8 +172,8 @@ def orderBuySell(status, highPrice, lowPrice, rangeSize, symb, x, position, askP
                     qty = qty,
                     side = OrderSide.SELL,
                     time_in_force = TimeInForce.GTC,
-                    limit_price = str((float(lowPrice) + float(rangeSize))*.99),
-                    stop_price = str((float(lowPrice) + float(rangeSize))*1.01)
+                    limit_price = str((float(lowPrice) + float(rangeSize))*1.01),
+                    stop_price = str((float(lowPrice) + float(rangeSize))*.98)
                     )
         res = trade_client.submit_order(req)
         #print(res)
@@ -201,6 +201,8 @@ def orderBuySell(status, highPrice, lowPrice, rangeSize, symb, x, position, askP
 def clearAllOrders(trade_client):
     trade_client.cancel_orders()
 
+clearAllOrders(trade_client)
+print("-=All Orders Cleared=-")
 while True:
     x+=1
     print("-=-----=-")
@@ -216,9 +218,12 @@ while True:
     time.sleep(15)
     if timerCount == 60:
         clearAllOrders(trade_client)
+        print("-=All Orders Cleared=-")
+        timerCount = 0
     elif timerCount == 30:
         print("50%")
-        #clearAllOrders(trade_client)
+        clearAllOrders(trade_client)
+        print("-=All Orders Cleared=-")
     
     
 
